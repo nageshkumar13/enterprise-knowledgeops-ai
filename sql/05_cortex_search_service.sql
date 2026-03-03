@@ -1,5 +1,5 @@
 -- =====================================================
--- 05_create_cortex_search_service.sql
+-- 05_cortex_search_service.sql
 -- Creates semantic search index
 -- =====================================================
 

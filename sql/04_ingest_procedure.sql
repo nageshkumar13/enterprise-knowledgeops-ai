@@ -1,5 +1,5 @@
 -- =====================================================
--- 04_create_ingest_procedure.sql
+-- 04_ingest_procedure.sql
 -- Parses documents from stage and creates chunks
 -- =====================================================
 

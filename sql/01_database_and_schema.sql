@@ -1,5 +1,5 @@
 -- =====================================================
--- 01_create_database_and_schema.sql
+-- 01_database_and_schema.sql
 -- KnowledgeOps AI database and schema
 -- =====================================================
 

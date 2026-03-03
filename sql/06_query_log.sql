@@ -1,0 +1,29 @@
+-- =====================================================
+-- 06_query_log.sql
+-- Query audit table for question execution telemetry
+-- =====================================================
+
+USE DATABASE KNOWLEDGEOPS_AI;
+USE SCHEMA DOCS;
+
+
+CREATE OR REPLACE TABLE QUERY_LOG (
+    QUERY_ID STRING DEFAULT UUID_STRING(),
+    USER_ID STRING,
+    QUERY_TEXT STRING,
+    TOP_K NUMBER,
+    RESPONSE_TIME_MS NUMBER,
+    SEARCH_RESULTS_COUNT NUMBER,
+    MODEL_USED STRING,
+    SUCCESS BOOLEAN,
+    ERROR_MESSAGE STRING,
+    CREATED_AT TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP()
+);
+
+
+GRANT SELECT, INSERT ON TABLE QUERY_LOG
+TO ROLE KNOWLEDGEOPS_APP_ROLE;
+
+
+-- Verify
+SHOW TABLES LIKE 'QUERY_LOG';

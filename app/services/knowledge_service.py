@@ -1,3 +1,5 @@
+import time
+
 from app.api.v1.schemas.query_schema import QueryContextChunk, QueryResponse, QueryResponseData
 from app.core.config import get_settings
 from app.core.errors import BadRequestError, SnowflakeOperationError
@@ -26,6 +28,7 @@ class KnowledgeService:
         if not question:
             raise BadRequestError("Question cannot be empty.")
 
+        start_time = time.perf_counter()
         self.logger.info("query_start question=%s", question)
         try:
             chunks = self.search_service.search(question=question, limit=limit)
@@ -37,7 +40,15 @@ class KnowledgeService:
                 answer = "No answer was generated from the available context."
 
             self.logger.info("query_generation_success question=%s", question)
-            self.query_log_repository.try_log(question=question, answer=answer)
+            response_time_ms = int((time.perf_counter() - start_time) * 1000)
+            self.query_log_repository.try_log(
+                query_text=question,
+                top_k=limit,
+                response_time_ms=response_time_ms,
+                search_results_count=len(chunks),
+                model_used=self.settings.cortex_model,
+                success=True,
+            )
 
             return QueryResponse(
                 success=True,
@@ -61,4 +72,14 @@ class KnowledgeService:
         except BadRequestError:
             raise
         except Exception as exc:
+            response_time_ms = int((time.perf_counter() - start_time) * 1000)
+            self.query_log_repository.try_log(
+                query_text=question,
+                top_k=limit,
+                response_time_ms=response_time_ms,
+                search_results_count=0,
+                model_used=self.settings.cortex_model,
+                success=False,
+                error_message=str(exc),
+            )
             raise SnowflakeOperationError(f"Query processing failed: {exc}") from exc

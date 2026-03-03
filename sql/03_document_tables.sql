@@ -1,5 +1,5 @@
 -- =====================================================
--- 03_create_document_tables.sql
+-- 03_document_tables.sql
 -- Document metadata and chunk storage
 -- =====================================================
 
@@ -64,7 +64,7 @@ SET CHANGE_TRACKING = TRUE;
 
 
 -- =====================================================
--- Verify
+--                      Verify
 -- =====================================================
 
 SHOW TABLES IN SCHEMA KNOWLEDGEOPS_AI.DOCS;
