@@ -39,7 +39,7 @@ BEGIN
 
             AI_PARSE_DOCUMENT(
                 TO_FILE('@DOCS_STAGE', METADATA$FILENAME),
-                OBJECT_CONSTRUCT('mode', 'LAYOUT')
+                OBJECT_CONSTRUCT('mode', 'LAYOUT', 'page_split', TRUE)
             ) AS parsed
 
         FROM DIRECTORY(@DOCS_STAGE)
@@ -54,7 +54,7 @@ BEGIN
 
             VALUE:index AS PAGE_NUMBER,
 
-            VALUE:text::STRING AS PAGE_TEXT
+            COALESCE(VALUE:content::STRING, VALUE:text::STRING) AS PAGE_TEXT
 
         FROM parsed_docs,
         LATERAL FLATTEN(parsed:pages)
@@ -69,7 +69,7 @@ BEGIN
 
             PAGE_NUMBER,
 
-            SPLIT_TEXT_RECURSIVE_CHARACTER(
+            SNOWFLAKE.CORTEX.SPLIT_TEXT_RECURSIVE_CHARACTER(
                 PAGE_TEXT,
                 'plain_text',
                 1500,

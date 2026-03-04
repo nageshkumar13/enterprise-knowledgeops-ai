@@ -27,11 +27,13 @@ class DocumentService:
         normalized_name = normalize_filename(file.filename)
         stage_filename = f"{doc_id}_{normalized_name}"
         temp_file_path = ""
+        temp_dir_path = ""
 
         self.logger.info("upload_start doc_id=%s file_name=%s", doc_id, normalized_name)
         try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
-                temp_file_path = tmp_file.name
+            temp_dir_path = tempfile.mkdtemp(prefix="knowledgeops_")
+            temp_file_path = str(Path(temp_dir_path) / stage_filename)
+            with open(temp_file_path, "wb") as tmp_file:
                 file.file.seek(0)
                 shutil.copyfileobj(file.file, tmp_file)
 
@@ -52,7 +54,7 @@ class DocumentService:
 
             chunk_count = self.document_repository.parse_and_store_chunks(
                 doc_id=doc_id,
-                stage_filename=stage_filename,
+                stage_filename=stage_path,
             )
             self.document_repository.update_document_status(doc_id, "PARSED")
 
@@ -86,3 +88,5 @@ class DocumentService:
         finally:
             if temp_file_path and os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
+            if temp_dir_path and os.path.isdir(temp_dir_path):
+                shutil.rmtree(temp_dir_path, ignore_errors=True)

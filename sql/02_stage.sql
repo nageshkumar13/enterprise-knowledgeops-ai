@@ -9,7 +9,8 @@ USE SCHEMA DOCS;
 
 -- Internal stage for PDF storage.
 -- SNOWFLAKE_SSE is required for AI_PARSE_DOCUMENT compatibility.
-CREATE STAGE IF NOT EXISTS DOCS_STAGE
+-- NOTE: CREATE OR REPLACE will clear previously staged files.
+CREATE OR REPLACE STAGE DOCS_STAGE
 ENCRYPTION = (TYPE = 'SNOWFLAKE_SSE')
 DIRECTORY = (ENABLE = TRUE);
 

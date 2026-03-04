@@ -11,21 +11,33 @@ class CortexSearchRepository:
         self.settings = get_settings()
 
     def search(self, query: str, limit: int) -> list[dict[str, Any]]:
-        sql = """
+        sql_json_string_payload = """
             SELECT
                 SNOWFLAKE.CORTEX.SEARCH_PREVIEW(
                     %s,
-                    TO_JSON(
-                        OBJECT_CONSTRUCT(
-                            'query', %s,
-                            'columns', ARRAY_CONSTRUCT('DOC_ID', 'PAGE_NUMBER', 'CHUNK_TEXT'),
-                            'limit', %s
-                        )
-                    )
+                    %s
                 ) AS SEARCH_RESULT
         """
+        payload_json = json.dumps(
+            {
+                "query": query,
+                "columns": ["DOC_ID", "PAGE_NUMBER", "CHUNK_TEXT"],
+                "limit": limit,
+            }
+        )
         with self.connection_manager.cursor() as (_, cursor):
-            cursor.execute(sql, (self.settings.search_service_fqn, query, limit))
+            try:
+                cursor.execute(sql_json_string_payload, (self.settings.search_service_fqn, payload_json))
+            except Exception as exc:
+                message = str(exc)
+                normalized = message.upper()
+                if "390404" in normalized or "DOES NOT EXIST OR ACCESS IS NOT AUTHORIZED" in normalized:
+                    raise RuntimeError(
+                        "Cortex Search Service is missing or not authorized for the configured role. "
+                        f"service={self.settings.search_service_fqn}. "
+                        "Create/verify the service and grant USAGE to the app role."
+                    ) from exc
+                raise
             row = cursor.fetchone()
 
         if not row or not row.get("SEARCH_RESULT"):
